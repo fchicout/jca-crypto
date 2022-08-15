@@ -80,23 +80,36 @@ public class RSAWrapper {
         return keyFactory.generatePrivate(privateKeySpec);
     }
 
+    public byte[] encrypt(byte[] secretMessage) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, InvalidKeySpecException, IOException, IllegalBlockSizeException, BadPaddingException {
+        Cipher encryptCipher = Cipher.getInstance("RSA");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, readPublicKeyFromFile("public.key"));
+        return encryptCipher.doFinal(secretMessage);
+    }
+
     public String encrypt(String secretMessage) throws InvalidKeyException, NoSuchAlgorithmException,
             InvalidKeySpecException, IOException, NoSuchPaddingException, IllegalBlockSizeException,
             BadPaddingException {
-        Cipher encryptCipher = Cipher.getInstance("RSA");
-        encryptCipher.init(Cipher.ENCRYPT_MODE, readPublicKeyFromFile("public.key"));
         byte[] secretMessageBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
-        byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
+        byte[] encryptedMessageBytes = encrypt(secretMessageBytes);
         return Base64.getEncoder().encodeToString(encryptedMessageBytes);
+    }
+
+    public byte[] decrypt(byte[] encryptedMessage)
+            throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
+            NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+        Cipher decryptCipher = Cipher.getInstance("RSA");
+        decryptCipher.init(Cipher.DECRYPT_MODE, readPrivateKeyFromFile("private.key"));
+        return decryptCipher.doFinal(encryptedMessage);
     }
 
     public String decrypt(String encryptedMessage)
             throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
             NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-        Cipher decryptCipher = Cipher.getInstance("RSA");
-        decryptCipher.init(Cipher.DECRYPT_MODE, readPrivateKeyFromFile("private.key"));
+        // Cipher decryptCipher = Cipher.getInstance("RSA");
+        // decryptCipher.init(Cipher.DECRYPT_MODE, readPrivateKeyFromFile("private.key"));
         byte[] encryptedMessageBytes = Base64.getDecoder().decode(encryptedMessage);
-        byte[] decryptedMessageBytes = decryptCipher.doFinal(encryptedMessageBytes);
+        byte[] decryptedMessageBytes = decrypt(encryptedMessageBytes);
         return new String(decryptedMessageBytes, StandardCharsets.UTF_8);
     }
 }
